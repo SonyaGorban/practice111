@@ -1,4 +1,4 @@
-practice1
+## practice1
 PS C:\Users\user\Desktop\practice11> docker --version Docker version 29.2.1, build a5c7197 PS C:\Users\user\Desktop\practice11> docker compose version Docker Compose version v5.0.2 PS C:\Users\user\Desktop\practice11> docker run --rm hello-world
 
 Hello from Docker! This message shows that your installation appears to be working correctly.
@@ -162,3 +162,163 @@ import * as redisStore from 'cache-manager-redis-store';
 
 C:\Users\user\Desktop\practice11\practice111> docker compose exec redis redis-cli ping
 PONG
+
+
+## Практична 3 — CRUD REST API для MiniShop
+
+Student
+Name: Горбань Софія Сергіївна
+Group: 232.1
+
+Структура репозиторію
+. ├── src/ │ ├── categories/ │ │ ├── category.entity.ts │ │ ├── categories.module.ts │ │ ├── categories.service.ts │ │ └── categories.controller.ts │ ├── products/ │ │ ├── product.entity.ts │ │ ├── products.module.ts │ │ ├── products.service.ts │ │ └── products.controller.ts │ ├── migrations/ │ │ ├── 1700000001-CreateTables.ts │ │ └── -AddIsActiveToProducts.ts │ ├── data-source.ts │ └── app.module.ts ├── Dockerfile ├── docker-compose.yml └── README.md
+
+Запуск проекту
+cp .env.example .env docker compose up --build
+
+ PS C:\Users\user\Desktop\practice11\practice111> docker compose up --build -d
+#1 [internal] load local bake definitions
+#1 reading from stdin 547B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 251B 0.0s done
+#2 DONE 0.0s
+
+#3 [auth] library/node:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/library/node:20-alpine
+#4 DONE 2.2s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [1/6] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#6 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 3.24MB 2.0s done
+#7 DONE 2.1s
+
+#8 [2/6] RUN npm install -g @nestjs/cli
+#8 CACHED
+
+#9 [3/6] WORKDIR /app
+#9 CACHED
+
+#10 [4/6] COPY package*.json ./
+#10 CACHED
+
+#11 [5/6] RUN npm install --ignore-scripts 2>/dev/null || true
+#11 CACHED
+
+#12 [6/6] COPY . .
+#12 DONE 5.5s
+
+#13 exporting to image
+#13 exporting layers
+#13 exporting layers 9.6s done
+#13 exporting manifest sha256:cb3ca99e2288b3d54bead6753a7a85d161a162de5666b8dba8297367272428ce 0.0s done
+#13 exporting config sha256:69a02a38b20ce80b3326e547c2744cb515240731e097d12f45953af31d911f76 0.0s done
+#13 exporting attestation manifest sha256:811795b52ce2b12bc801df61c2b47babf15571dc7f7b33843a0505a901eaca8c
+#13 exporting attestation manifest sha256:811795b52ce2b12bc801df61c2b47babf15571dc7f7b33843a0505a901eaca8c 0.1s done
+#13 exporting manifest list sha256:2ef4cec1b9edfe8767131859afbbfa9653394077f0df900f08daaa26ef3d0306 0.0s done
+#13 naming to docker.io/library/practice111-app:latest done
+#13 unpacking to docker.io/library/practice111-app:latest
+#13 unpacking to docker.io/library/practice111-app:latest 4.3s done
+#13 DONE 14.2s
+
+#14 resolving provenance for metadata file
+#14 DONE 0.0s
+[+] up 6/6
+ ✔ Image practice111-app            Built                                                                                  24.9s
+ ✔ Network practice111_nestnet      Created                                                                                0.1s
+ ✔ Volume practice111_postgres_data Created                                                                                0.0s
+ ✔ Container practice111-redis-1    Healthy                                                                                20.8s
+ ✔ Container practice111-postgres-1 Healthy                                                                                20.8s
+ ✔ Container practice111-app-1      Created  
+
+ PS C:\Users\user\Desktop\practice11\practice111> docker compose run --rm app npm run migration:generate -- src/migrations/InitTables
+[+]  2/2t 2/22
+ ✔ Container practice111-redis-1    Running                                                                                 0.0s
+ ✔ Container practice111-postgres-1 Running                                                                                 0.0s
+Container practice111-redis-1 Waiting 
+Container practice111-postgres-1 Waiting 
+Container practice111-postgres-1 Healthy 
+Container practice111-redis-1 Healthy 
+Container practice111-app-run-97427826f35b Creating 
+Container practice111-app-run-97427826f35b Created 
+
+> app@0.0.1 migration:generate
+> npm run typeorm -- migration:generate -d src/data-source.ts src/migrations/InitTables
+
+
+> app@0.0.1 typeorm
+> ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate -d src/data-source.ts src/migrations/InitTables
+
+Migration /app/src/migrations/1777233207431-InitTables.ts has been generated successfully.
+[11:33:46 AM] Starting compilation in watch mode...
+app-1       | 
+app-1       | [11:33:50 AM] Found 0 errors. Watching for file changes.
+app-1       | 
+app-1       | [Nest] 34  - 04/27/2026, 11:33:50 AM     LOG [NestFactory] Starting Nest application...
+app-1       | [Nest] 34  - 04/27/2026, 11:33:50 AM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +67ms
+app-1       | [Nest] 34  - 04/27/2026, 11:33:50 AM     LOG [InstanceLoader] ConfigHostModule dependencies initialized +1ms
+app-1       | [Nest] 34  - 04/27/2026, 11:33:50 AM     LOG [InstanceLoader] AppModule dependencies initialized +0ms
+app-1       | [Nest] 34  - 04/27/2026, 11:33:50 AM     LOG [InstanceLoader] ConfigModule dependencies initialized +0ms
+app-1       | [Nest] 34  - 04/27/2026, 11:33:51 AM     LOG [InstanceLoader] CacheModule dependencies initialized +24ms
+app-1       | [Nest] 34  - 04/27/2026, 11:33:51 AM     LOG [InstanceLoader] TypeOrmCoreModule dependencies initialized +69ms
+app-1       | [Nest] 34  - 04/27/2026, 11:33:51 AM     LOG [RoutesResolver] AppController {/}: +4ms
+app-1       | [Nest] 34  - 04/27/2026, 11:33:51 AM     LOG [RouterExplorer] Mapped {/, GET} route +3ms
+app-1       | [Nest] 34  - 04/27/2026, 11:33:51 AM     LOG [NestApplication] Nest application successfully started +3ms
+postgres-1  | 2026-04-27 11:38:51.663 UTC [28] LOG:  checkpoint starting: time
+postgres-1  | 2026-04-27 11:38:51.677 UTC [28] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.004 s, sync=0.002 s, total=0.014 s; sync files=2, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/1989510, redo lsn=0/19894D8 
+
+API Endpoints
+Method	URL	Опис
+GET	/api/categories	Список категорій
+GET	/api/categories/:id	Одна категорія
+POST	/api/categories	Створити категорію
+PATCH	/api/categories/:id	Оновити категорію
+DELETE	/api/categories/:id	Видалити категорію
+GET	/api/products	Список продуктів
+GET	/api/products/:id	Один продукт
+POST	/api/products	Створити продукт
+PATCH	/api/products/:id	Оновити продукт
+DELETE	/api/products/:id	Видалити продукт
+
+## Тест створення категорії
+
+PS C:\Users\user\Desktop\practice11\practice111> docker compose exec postgres psql -U nestuser -d nestdb -c "\dt"
+           List of relations
+ Schema |    Name    | Type  |  Owner   
+--------+------------+-------+----------
+ public | migrations | table | nestuser
+(1 row)
+
+## Тест створення продукту
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : [{"id":1,"isActive":true,"name":"iPhone16","de
+                    scription":null,"price":"999.00","stock":0,"
+                    category":{"id":1,"name":"Electronics","desc
+                    ription":null,"createdAt":"2026-04-27T17:30:
+                    32.186Z"},"createdAt":"2..}]
+
+### Тест 404
+
+PS C:\Users\user\Desktop\practice11\practice111> curl http://localhost:3000/api/products/999
+curl : {"message":"Product #999 not found","error":"Not Found","
+statusCode":404}
+
+
+
+
+
+
+
+
