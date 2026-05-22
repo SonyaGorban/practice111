@@ -1,28 +1,22 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CacheModule } from '@nestjs/cache-manager';
-import { redisStore } from 'cache-manager-redis-yet';
+
 import { Category } from './categories/category.entity';
 import { Product } from './products/product.entity';
 
+import { ProductsModule } from './products/products.module';
+import { CategoriesModule } from './categories/categories.module';
+
 @Module({
   imports: [
-    CacheModule.registerAsync({
-  isGlobal: true,
-  useFactory: async () => ({
-    store: await redisStore({
-      socket: {
-        host: process.env.REDIS_HOST,
-        port: parseInt(process.env.REDIS_PORT|| '5432', 10),
-      },
-    }),
-    ttl: 60000,
-  }),
-}),
+    // ✅ env variables
     ConfigModule.forRoot({ isGlobal: true }),
+
+    // ✅ PostgreSQL connection
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.POSTGRES_HOST,
@@ -31,10 +25,13 @@ import { Product } from './products/product.entity';
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
       entities: [Category, Product],
-      synchronize: false,
-      migrationsRun: true,
-      migrations: [],
+      synchronize: true,
+      migrationsRun: false,
     }),
+
+    // ✅ your modules
+    ProductsModule,
+    CategoriesModule
   ],
   controllers: [AppController],
   providers: [AppService],
