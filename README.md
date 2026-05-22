@@ -315,10 +315,151 @@ PS C:\Users\user\Desktop\practice11\practice111> curl http://localhost:3000/api/
 curl : {"message":"Product #999 not found","error":"Not Found","
 statusCode":404}
 
+## Практичне заняття №4 — DTO + class-validator + Pipes
+ 
+### Структура репозиторію
+ ## Student
+- Name: <Горбань Софія>
+- Group: <232.1>
+.
+├── src/
+│   ├── categories/
+│   │   ├── dto/
+│   │   │   ├── create-category.dto.ts
+│   │   │   └── update-category.dto.ts
+│   │   ├── category.entity.ts
+│   │   ├── categories.module.ts
+│   │   ├── categories.service.ts
+│   │   └── categories.controller.ts
+│   ├── products/
+│   │   ├── dto/
+│   │   │   ├── create-product.dto.ts
+│   │   │   └── update-product.dto.ts
+│   │   ├── product.entity.ts
+│   │   ├── products.module.ts
+│   │   ├── products.service.ts
+│   │   └── products.controller.ts
+│   ├── common/
+│   │   └── pipes/
+│   │   	└── trim.pipe.ts
+│   ├── migrations/
+│   ├── data-source.ts
+│   ├── main.ts
+│   └── app.module.ts
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+
+### Запуск проекту
+bash
+cp .env.example .env
+docker compose up --build
 
 
+## Валідна категорія
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/categories" `  -Method POST `  -ContentType "application/json" `  -Body '{"name":"Electronics","description":"Gadgets"}'
+
+id name        description createdAt               
+-- ----        ----------- ---------               
+ 1 Electronics Gadgets     2026-05-22T11:34:14.244Z
 
 
+## Порожнє ім’я
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/categories" `  -Method POST `  -ContentType "application/json" `  -Body '{"name":""}'
+Invoke-RestMethod : {"message":["name must be longer than or equal to 2 characters"],"error":"Bad Request","statusCode":400}
+At line:1 char:1
++ Invoke-RestMethod -Uri "http://localhost:3000/api/categories" `  -Met ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+
+## Без name
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/categories" `  -Method POST `  -ContentType "application/json" `  -Body '{"description":"Some text"}'
+Invoke-RestMethod : {"message":["name must be shorter than or equal to 100 characters","name must be longer than or equal to 2 character
+s","name must be a string"],"error":"Bad Request","statusCode":400}
+At line:1 char:1
++ Invoke-RestMethod -Uri "http://localhost:3000/api/categories" `  -Met ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+
+## Зайве поле (forbidNonWhitelisted)
+    PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/categories" `  -Method POST `  -ContentType "application/json" `  -Body '{"name":"Test","isAdmin":true}'
+Invoke-RestMethod : {"message":["property isAdmin should not exist"],"error":"Bad Request","statusCode":400}
+At line:1 char:1
++ Invoke-RestMethod -Uri "http://localhost:3000/api/categories" `  -Met ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+
+## Валідний продукт
+    PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/products" `  -Method POST `  -ContentType "application/json" `  -Body '{"name":"iPhone 16","price":999.99,"stock":50,"categoryId":1}'
 
 
+id          : 1
+isActive    : True
+name        : iPhone 16
+description : 
+price       : 999,99
+stock       : 50
+category    : @{id=1}
+createdAt   : 2026-05-22T11:38:52.076Z
+updatedAt   : 2026-05-22T11:38:52.076Z
+
+## Від’ємна ціна
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/products" `  -Method POST `  -ContentType "application/json" `  -Body '{"name":"Bad Product","price":-5}'
+Invoke-RestMethod : {"message":["price must not be less than 0.01"],"error":"Bad Request","statusCode":400}
+At line:1 char:1
++ Invoke-RestMethod -Uri "http://localhost:3000/api/products" `  -Metho ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+
+## Кілька помилок
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/products" `  -Method POST `  -ContentType "application/json" `  -Body '{"name":"","price":-5,"stock":-10}'
+Invoke-RestMethod : {"message":["name must be longer than or equal to 2 characters","price must not be less than 0.01","stock must not b
+e less than 0"],"error":"Bad Request","statusCode":400}
+At line:1 char:1
++ Invoke-RestMethod -Uri "http://localhost:3000/api/products" `  -Metho ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand   
+
+## PATCH
+ PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/products/1" `  -Method PATCH `  -ContentType "application/json" `  -Body '{"price":899.99}'
+
+
+id          : 1
+isActive    : True
+name        : iPhone 16
+description : 
+price       : 899,99
+stock       : 50
+category    : @{id=1; name=Electronics; description=Gadgets; createdAt=2026-05-22T11:34:14.244Z}
+createdAt   : 2026-05-22T11:38:52.076Z
+updatedAt   : 2026-05-22T14:25:18.242Z
+
+ ## Порожній PATCH
+    PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/products/1" `  -Method PATCH `  -ContentType "application/json" `  -Body '{}'
+
+
+id          : 1
+isActive    : True
+name        : iPhone 16
+description : 
+price       : 899.99
+stock       : 50
+category    : @{id=1; name=Electronics; description=Gadgets; createdAt=2026-05-22T11:34:14.244Z}
+createdAt   : 2026-05-22T11:38:52.076Z
+updatedAt   : 2026-05-22T11:39:56.204Z
+
+### Тест TrimPipe
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/categories" `  -Method POST `  -ContentType "application/json" `  -Body '{"name":"  Accessories  "}'
+
+id name            description createdAt               
+-- ----            ----------- ---------               
+ 2   Accessories               2026-05-22T11:56:39.705Z
+
+
+ 
 
