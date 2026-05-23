@@ -463,3 +463,238 @@ id name            description createdAt
 
  
 
+## Student
+- Name: Горбань Софія Сергіївна
+- 232.1
+
+## Практичне заняття №5 — JWT Authentication + Guards + RBAC
+
+├── src/
+│ ├── auth/
+│ │ ├── dto/
+│ │ │ ├── register.dto.ts
+│ │ │ └── login.dto.ts
+│ │ ├── auth.module.ts
+│ │ ├── auth.service.ts
+│ │ └── auth.controller.ts
+│ ├── users/
+│ │ ├── user.entity.ts
+│ │ ├── users.module.ts
+│ │ └── users.service.ts
+│ ├── common/
+│ │ ├── enums/
+│ │ │ └── role.enum.ts
+│ │ ├── guards/
+│ │ │ ├── jwt-auth.guard.ts
+│ │ │ └── roles.guard.ts
+│ │ ├── decorators/
+│ │ │ ├── current-user.decorator.ts
+│ │ │ └── roles.decorator.ts
+│ │ └── pipes/
+│ │ └── trim.pipe.ts
+│ ├── categories/
+│ ├── products/
+│ ├── migrations/
+│ ├── data-source.ts
+│ ├── main.ts
+│ └── app.module.ts
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+
+PS C:\Users\user\Desktop\practice11\practice111> docker compose up --build -d
+#1 [internal] load local bake definitions
+#1 reading from stdin 547B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 251B done
+#2 DONE 0.0s
+
+#3 [auth] library/node:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/library/node:20-alpine
+#4 DONE 1.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [1/6] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+#6 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 3.46MB 2.3s done
+#7 DONE 2.4s
+
+#8 [2/6] RUN npm install -g @nestjs/cli
+#8 CACHED
+
+#9 [3/6] WORKDIR /app
+#9 CACHED
+
+#10 [4/6] COPY package*.json ./
+#10 CACHED
+
+#11 [5/6] RUN npm install --ignore-scripts 2>/dev/null || true
+#11 CACHED
+
+#12 [6/6] COPY . .
+#12 DONE 4.7s
+
+#13 exporting to image
+#13 exporting layers
+#13 exporting layers 8.6s done
+#13 exporting manifest sha256:c67a8eb95a5c2279da7678dacab053bc76e547174a49dba48159fef3d0d2c3ba 0.0s done
+#13 exporting config sha256:649885f9c3c764542dfbdb0ce2bb15ac9fb013dfe83d450fba111fd7ca4d1ce4 0.0s done
+#13 exporting attestation manifest sha256:27dcf30050bb2166edf3c2fa4410a636e83084b4434475aad334133fc6605909 0.0s done
+#13 exporting manifest list sha256:ff7a2141026c0c9ee9b87502f3485b1ac7c65d67fa0ec4674f52b8b8a09657b4 0.0s done
+#13 naming to docker.io/library/practice111-app:latest done
+#13 unpacking to docker.io/library/practice111-app:latest
+#13 unpacking to docker.io/library/practice111-app:latest 8.0s done
+#13 DONE 16.8s
+
+#14 resolving provenance for metadata file
+#14 DONE 0.0s
+[+] up 4/4
+ ✔ Image practice111-app            Built                                                                                           24.9s
+ ✔ Container practice111-redis-1    Healthy                                                                                         3.4s
+ ✔ Container practice111-postgres-1 Healthy                                                                                         3.4s
+ ✔ Container practice111-app-1      Recreated     
+
+
+
+##  API Endpoints
+| Method | URL | Auth | Role |
+|--------|-----|------|------|
+| POST | /auth/register | - | - |
+| POST | /auth/login | - | - |
+| GET | /api/categories | - | - |
+| POST | /api/categories | JWT | admin |
+| GET | /api/products | - | - |
+| POST | /api/products | JWT | admin |
+| PATCH | /api/products/:id | JWT | admin |
+| DELETE | /api/products/:id | JWT | admin |
+
+
+PS C:\Users\user\Desktop\practice11\practice111> docker compose exec postgres psql -U nestuser -d nestdb -c "\d users"
+                                         Table "public.users"
+    Column    |            Type             | Collation | Nullable |              Default              
+--------------+-----------------------------+-----------+----------+-----------------------------------
+ id           | integer                     |           | not null | nextval('users_id_seq'::regclass)
+ email        | character varying           |           | not null | 
+ passwordHash | character varying           |           | not null | 
+ name         | character varying(100)      |           |          | 
+ role         | users_role_enum             |           | not null | 'user'::users_role_enum
+ createdAt    | timestamp without time zone |           | not null | now()
+Indexes:
+    "PK_users_id" PRIMARY KEY, btree (id)
+    "UQ_users_email" UNIQUE CONSTRAINT, btree (email)
+
+
+## 1.  Реєстрація нового користувача:
+    PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Method Post `  -Uri "http://localhost:3000/auth/register" `  -ContentType "application/json" `  -Body '{"email":"admin@test.com","password":"password123","name":"Admin"}'
+
+
+id        : 1
+email     : admin@test.com
+name      : Admin
+role      : user
+createdAt : 2026-05-23T13:19:24.860Z
+
+## 2. Повторна реєстрація (дубль email):
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Method POST http://localhost:3000/auth/register `-Headers @{ "Content-Type" = "application/json" } `-Body '{"email":"user@test.com","password":"otherpass123"}'
+Invoke-RestMethod : A positional parameter cannot be found that accepts argument '-Headers'.
+At line:1 char:1
++ Invoke-RestMethod -Method POST http://localhost:3000/auth/register `- ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Invoke-RestMethod], ParameterBindingException
+    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+
+
+## 3.  Логін і збереження токену : 
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Method Post `  -Uri "http://localhost:3000/auth/login" `  -ContentType "application/json" `  -Body '{"email":"admin@test.com","password":"password123"}'
+
+accessToken                                                                                                                             
+-----------                                                                                                                             
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5AdGVzdC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTc3OTU0MjQzNywiZXhwIjox...
+
+## 4. Невірний пароль:
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Method POST http://localhost:3000/auth/login `-Headers @{ "Content-Type" = "application/json" } `-Body '{"email":"user@test.com","password":"wrongpassword"}'
+Invoke-RestMethod : A positional parameter cannot be found that accepts argument '-Headers'.
+At line:1 char:1
++ Invoke-RestMethod -Method POST http://localhost:3000/auth/login `-Hea ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Invoke-RestMethod], ParameterBindingException
+    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+
+## 5. GET без токена (публічний):
+PS C:\Users\user\Desktop\practice11\practice111> curl http://localhost:3000/api/products
+
+Security Warning: Script Execution Risk
+Invoke-WebRequest parses the content of the web page. Script code in the web page might be run when the page is parsed.
+      RECOMMENDED ACTION:
+      Use the -UseBasicParsing switch to avoid script code execution.
+
+      Do you want to continue?
+    
+[Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "N"): Y
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : []
+RawContent        : HTTP/1.1 200 OK
+                    Connection: keep-alive
+                    Keep-Alive: timeout=5
+                    Content-Length: 2
+                    Content-Type: application/json; charset=utf-8
+                    Date: Sat, 23 May 2026 14:20:32 GMT
+                    ETag: W/"2-l9Fw4VUO7kr8CvBlt4zaMC...
+Forms             : {}
+Headers           : {[Connection, keep-alive], [Keep-Alive, timeout=5], [Content-Length, 2], [Content-Type, application/json; charset=ut
+                    f-8]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : System.__ComObject
+RawContentLength  : 2
+
+## 6. POST без токена
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Method POST "http://localhost:3000/api/products" -Headers @{ "Content-Type" = "application/json" } -Body '{"name":"Hacked Product","price":1}'
+Invoke-RestMethod : {"message":"Missing authorization token","error":"Unauthorized","statusCode":401}
+At line:1 char:1
++ Invoke-RestMethod -Method POST "http://localhost:3000/api/products" - ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-RestMethod], WebException
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeRestMethodCommand
+ 
+## 7. POST з токеном USER (не admin):
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Uri "http://localhost:3000/api/products" `
+>> -Method POST `
+>> -Headers @{Authorization="Bearer $userToken"} `
+>> -ContentType "application/json" `
+>> -Body '{"name":"Blocked Product","price":99}'
+Invoke-RestMethod : {"message":"Insufficient permissions","error":"Forbidden","statusCo
+de":403}
+At line:1 char:1
++ Invoke-RestMethod -Uri "http://localhost:3000/api/products" `
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOp
+
+## 8. POST з токеном ADMIN:
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-RestMethod -Method POST "http://localhost:3000/api/products" -Headers @{ "Content-Type"="application/json"; "Authorization"="Bearer $adminToken" } -Body '{"name":"MacBook Pro","price":2499.99,"stock":10}'
+
+
+id          : 1
+isActive    : True
+name        : MacBook Pro
+description : 
+price       : 2499,99
+stock       : 10
+createdAt   : 2026-05-23T14:40:26.121Z
+updatedAt   : 2026-05-23T14:40:26.121Z
+
+
