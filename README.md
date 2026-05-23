@@ -697,4 +697,225 @@ stock       : 10
 createdAt   : 2026-05-23T14:40:26.121Z
 updatedAt   : 2026-05-23T14:40:26.121Z
 
+## Student
+- Name: <Горбань Софія>
+- Group: <232.1>
+ 
+## Практичне заняття №6 — Interceptors + Exception Filters + Swagger
+ 
+### Структура репозиторію
+```
+.
+├── src/
+│   ├── auth/ ...
+│   ├── users/ ...
+│   ├── categories/ ...
+│   ├── products/ ...
+│   ├── common/
+│   │   ├── enums/
+│   │   │   └── role.enum.ts
+│   │   ├── guards/
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   └── roles.guard.ts
+│   │   ├── decorators/
+│   │   │   ├── current-user.decorator.ts
+│   │   │   └── roles.decorator.ts
+│   │   ├── interceptors/
+│   │   │   ├── logging.interceptor.ts
+│   │   │   └── transform.interceptor.ts
+│   │   ├── filters/
+│   │   │   └── http-exception.filter.ts
+│   │   └── pipes/
+│   │   	└── trim.pipe.ts
+│   ├── migrations/
+│   ├── main.ts
+│   └── app.module.ts
+├── swagger-screenshot.png
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
+ 
+### Запуск проекту
+```bash
+cp .env.example .env
+docker compose up --build
+```
+## Вправа 1
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-WebRequest http://localhost:3000/api/products
 
+Security Warning: Script Execution Risk
+Invoke-WebRequest parses the content of the web page. Script code in the web page might be run when the page is parsed.
+      RECOMMENDED ACTION:
+      Use the -UseBasicParsing switch to avoid script code execution.
+
+      Do you want to continue?
+    
+[Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "N"): Y
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : []
+RawContent        : HTTP/1.1 200 OK
+                    Connection: keep-alive
+                    Keep-Alive: timeout=5
+                    Content-Length: 2
+                    Content-Type: application/json; charset=utf-8
+                    Date: Sat, 23 May 2026 17:06:50 GMT
+                    ETag: W/"2-l9Fw4VUO7kr8CvBlt4zaMC...
+Forms             : {}
+Headers           : {[Connection, keep-alive], [Keep-Alive, timeout=5], [Content-Length, 2], [Content-Type, application/json; charset=ut
+                    f-8]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : System.__ComObject
+RawContentLength  : 2
+
+
+
+PS C:\Users\user\Desktop\practice11\practice111> docker compose logs --tail=5 app
+app-1  | [Nest] 34  - 05/23/2026, 5:06:34 PM     LOG [RouterExplorer] Mapped {/api/categories, POST} route +0ms
+app-1  | [Nest] 34  - 05/23/2026, 5:06:34 PM     LOG [RouterExplorer] Mapped {/api/categories/:id, PATCH} route +0ms
+app-1  | [Nest] 34  - 05/23/2026, 5:06:34 PM     LOG [RouterExplorer] Mapped {/api/categories/:id, DELETE} route +1ms
+app-1  | [Nest] 34  - 05/23/2026, 5:06:34 PM     LOG [NestApplication] Nest application successfully started +4ms
+app-1  | [Nest] 34  - 05/23/2026, 5:06:50 PM     LOG [HTTP] GET /api/products — 200 — 26ms
+
+## Вправа 2
+PS C:\Users\user\Desktop\practice11\practice111> Invoke-WebRequest http://localhost:3000/api/products                                    
+
+Security Warning: Script Execution Risk
+Invoke-WebRequest parses the content of the web page. Script code in the web page might be run when the page is parsed.
+      RECOMMENDED ACTION:
+      Use the -UseBasicParsing switch to avoid script code execution.
+
+      Do you want to continue?
+    
+[Y] Yes  [A] Yes to All  [N] No  [L] No to All  [S] Suspend  [?] Help (default is "N"): Y
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"data":[],"statusCode":200,"timestamp":"2026-05-23T17:15:47.389Z"}
+RawContent        : HTTP/1.1 200 OK
+                    Connection: keep-alive
+                    Keep-Alive: timeout=5
+                    Content-Length: 67
+                    Content-Type: application/json; charset=utf-8
+                    Date: Sat, 23 May 2026 17:15:47 GMT
+                    ETag: W/"43-zBbVwJBbn4TUJfNxOPyC...
+Forms             : {}
+Headers           : {[Connection, keep-alive], [Keep-Alive, timeout=5], [Content-Length, 67], [Content-Type, application/json; charset=u
+                    tf-8]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : System.__ComObject
+RawContentLength  : 67
+
+### Swagger UI
+http://localhost:3000/api/docs
+ 
+![Swagger](swaggerscreenshot.png)
+### Формат успішної відповіді
+{
+  "data": {},
+  "statusCode": 201,
+  "timestamp": "2026-05-23T21:26:00.270Z"
+}
+Response headers
+ connection: keep-alive 
+ content-length: 67 
+ content-type: application/json; charset=utf-8 
+ date: Sat,23 May 2026 21:26:00 GMT 
+ etag: W/"43-pO8sB5TDwXmZJ5fXN3oG07LKZvA" 
+ keep-alive: timeout=5 
+ x-powered-by: Express 
+
+ 
+### Формат помилки
+
+ {
+  "error": {
+    "code": 400,
+    "message": "Validation failed",
+    "details": [
+      "name must be longer than or equal to 2 characters",
+      "price must not be less than 0.01"
+    ],
+    "traceId": "85894379-84df-4852-abe3-a30f54bd49ea"
+  },
+  "timestamp": "2026-05-23T21:34:31.201Z"
+}
+Response headers
+ connection: keep-alive 
+ content-length: 239 
+ content-type: application/json; charset=utf-8 
+ date: Sat,23 May 2026 21:34:31 GMT 
+ etag: W/"ef-6HziDU4PDcLyzPBRwF9gueht7N8" 
+ keep-alive: timeout=5 
+ x-powered-by: Express 
+
+### Приклад логів (LoggingInterceptor)
+
+
+[9:39:56 PM] Starting compilation in watch mode...
+app-1  | 
+app-1  | [9:40:00 PM] Found 0 errors. Watching for file changes.
+app-1  | 
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [NestFactory] Starting Nest application...
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +67ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] ConfigHostModule dependencies initialized +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] AppModule dependencies initialized +1ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] ConfigModule dependencies initialized +1ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] ConfigModule dependencies initialized +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] JwtModule dependencies initialized +0ms
+app-1  | (node:34) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+app-1  | (Use `node --trace-deprecation ...` to show where the warning was created)
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] TypeOrmCoreModule dependencies initialized +82ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] UsersModule dependencies initialized +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] AuthModule dependencies initialized +1ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] ProductsModule dependencies initialized +1ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [InstanceLoader] CategoriesModule dependencies initialized +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RoutesResolver] AppController {/}: +23ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/, GET} route +3ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RoutesResolver] ProductsController {/api/products}: +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/api/products, GET} route +1ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/api/products/:id, GET} route +3ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/api/products, POST} route +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/api/products/:id, PATCH} route +1ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/api/products/:id, DELETE} route +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RoutesResolver] AuthController {/auth}: +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/auth/register, POST} route +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/auth/login, POST} route +1ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RoutesResolver] CategoriesController {/api/categories}: +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/api/categories, GET} route +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/api/categories/:id, GET} route +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/api/categories, POST} route +1ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/api/categories/:id, PATCH} route +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [RouterExplorer] Mapped {/api/categories/:id, DELETE} route +0ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:01 PM     LOG [NestApplication] Nest application successfully started +3ms
+app-1  | [Nest] 34  - 05/23/2026, 9:40:32 PM   ERROR [Exception] [e2d94ae4-42b9-4e26-8a3a-642a210467e3] POST /api/products — 400 — Validation failed
+app-1  | BadRequestException: Bad Request Exception
+app-1  |     at ValidationPipe.exceptionFactory (/app/node_modules/@nestjs/common/pipes/validation.pipe.js:112:20)
+app-1  |     at ValidationPipe.transform (/app/node_modules/@nestjs/common/pipes/validation.pipe.js:79:30)
+app-1  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+app-1  |     at async resolveParamValue (/app/node_modules/@nestjs/core/router/router-execution-context.js:148:23)
+app-1  |     at async Promise.all (index 0)
+app-1  |     at async pipesFn (/app/node_modules/@nestjs/core/router/router-execution-context.js:151:13)
+app-1  |     at async /app/node_modules/@nestjs/core/router/router-execution-context.js:37:30
+app-1  | [Nest] 34  - 05/23/2026, 9:45:09 PM     LOG [HTTP] GET /api/products/999 — 200 — 1ms
+app-1  | [Nest] 34  - 05/23/2026, 9:48:19 PM     LOG [HTTP] GET /api/products/999 — 200 — 0ms
+
+## Тест помилки з traceId
+
+curl http://localhost:3000/api/products/999
+curl : {"error":{"code":404,"message":"Product #999 not found
+","traceId":"d9037eaf-ea6d-4f5f-9ddc-9646452fca97"},"timestam
+p":"2026-05-23T17:9:43.329Z"}
+At line:1 char:1
++ curl http://localhost:3000/api/products/999
