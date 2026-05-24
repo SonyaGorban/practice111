@@ -8,6 +8,7 @@ import {
   Param,
   ParseIntPipe,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 
 import {
@@ -20,8 +21,11 @@ import {
 
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { ProductQueryDto } from './dto/product-query.dto';
 
-// якщо у тебе є guards — підключи нормально
+import { ProductsService } from './products.service';
+
+// guards / roles
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -30,17 +34,24 @@ import { Role } from '../common/enums/role.enum';
 @ApiTags('Products')
 @Controller('api/products')
 export class ProductsController {
-  constructor() {}
+  constructor(
+    private readonly productsService: ProductsService,
+  ) {}
 
-  // 🟢 GET ALL (public)
+  // 🟢 GET ALL (public) + pagination/filter/sort/search
   @Get()
   @ApiOperation({
-    summary: 'Отримати всі продукти',
-    description: 'Повертає список усіх продуктів з категоріями',
+    summary: 'Отримати продукти з пагінацією',
+    description:
+      'Повертає список продуктів з мета-інформацією. ' +
+      'Підтримує пагінацію, сортування, фільтрацію та пошук.',
   })
-  @ApiResponse({ status: 200, description: 'Список продуктів' })
-  findAll() {
-    return [];
+  @ApiResponse({
+    status: 200,
+    description: 'Список продуктів',
+  })
+  findAll(@Query() query: ProductQueryDto) {
+    return this.productsService.findAll(query);
   }
 
   // 🟢 GET BY ID (public)
@@ -49,14 +60,14 @@ export class ProductsController {
   @ApiResponse({ status: 200, description: 'Продукт знайдено' })
   @ApiResponse({ status: 404, description: 'Продукт не знайдено' })
   findOne(@Param('id', ParseIntPipe) id: number) {
-    return {};
+    return this.productsService.findOne(id);
   }
 
   // 🔐 CREATE (admin)
   @Post()
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Створити продукт (admin)' })
-  @ApiBody({ type: CreateProductDto }) // 🔥 ВАЖЛИВО — через це з'являється body
+  @ApiBody({ type: CreateProductDto })
   @ApiResponse({ status: 201, description: 'Продукт створено' })
   @ApiResponse({ status: 400, description: 'Помилка валідації' })
   @ApiResponse({ status: 401, description: 'Не авторизовано' })
@@ -64,7 +75,7 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   create(@Body() dto: CreateProductDto) {
-    return {};
+    return this.productsService.create(dto);
   }
 
   // 🔐 UPDATE (admin)
@@ -80,7 +91,7 @@ export class ProductsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateProductDto,
   ) {
-    return {};
+    return this.productsService.update(id, dto);
   }
 
   // 🔐 DELETE (admin)
@@ -92,6 +103,6 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
-    return {};
+    return this.productsService.remove(id);
   }
 }
