@@ -1,6 +1,7 @@
 services:
   app:
     build: .
+    container_name: nest_app
     ports:
       - "${APP_PORT}:3000"
     volumes:
@@ -18,6 +19,7 @@ services:
 
   postgres:
     image: postgres:16-alpine
+    container_name: nest_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -31,12 +33,13 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - nestnet
 
   redis:
     image: redis:7-alpine
+    container_name: nest_redis
     restart: unless-stopped
     ports:
       - "6379:6379"
@@ -44,7 +47,7 @@ services:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
-      retries: 5
+      retries: 10
     networks:
       - nestnet
 
