@@ -1,18 +1,122 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner, Table, TableForeignKey } from "typeorm";
 
 export class InitTables1777233207431 implements MigrationInterface {
     name = 'InitTables1777233207431'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`CREATE TABLE "categories" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "description" character varying, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_8b0be371d28245da6e4f4b61878" UNIQUE ("name"), CONSTRAINT "PK_24dbc6126a28ff948da33e97d3b" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "products" ("id" SERIAL NOT NULL, "name" character varying NOT NULL, "description" text, "price" numeric NOT NULL, "stock" integer NOT NULL DEFAULT '0', "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "updatedAt" TIMESTAMP NOT NULL DEFAULT now(), "category_id" integer, CONSTRAINT "PK_0806c755e0aca124e67c0cf6d7d" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`ALTER TABLE "products" ADD CONSTRAINT "FK_9a5f6868c96e0069e699f33e124" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE SET NULL ON UPDATE NO ACTION`);
+
+        const hasCategories = await queryRunner.hasTable("categories");
+        if (!hasCategories) {
+            await queryRunner.createTable(
+                new Table({
+                    name: "categories",
+                    columns: [
+                        {
+                            name: "id",
+                            type: "serial",
+                            isPrimary: true,
+                        },
+                        {
+                            name: "name",
+                            type: "varchar",
+                            isNullable: false,
+                        },
+                        {
+                            name: "description",
+                            type: "varchar",
+                            isNullable: true,
+                        },
+                        {
+                            name: "createdAt",
+                            type: "timestamp",
+                            default: "now()",
+                        },
+                    ],
+                    uniques: [
+                        {
+                            name: "UQ_categories_name",
+                            columnNames: ["name"],
+                        },
+                    ],
+                })
+            );
+        }
+
+        const hasProducts = await queryRunner.hasTable("products");
+        if (!hasProducts) {
+            await queryRunner.createTable(
+                new Table({
+                    name: "products",
+                    columns: [
+                        {
+                            name: "id",
+                            type: "serial",
+                            isPrimary: true,
+                        },
+                        {
+                            name: "name",
+                            type: "varchar",
+                            isNullable: false,
+                        },
+                        {
+                            name: "description",
+                            type: "text",
+                            isNullable: true,
+                        },
+                        {
+                            name: "price",
+                            type: "numeric",
+                            isNullable: false,
+                        },
+                        {
+                            name: "stock",
+                            type: "int",
+                            default: 0,
+                        },
+                        {
+                            name: "createdAt",
+                            type: "timestamp",
+                            default: "now()",
+                        },
+                        {
+                            name: "updatedAt",
+                            type: "timestamp",
+                            default: "now()",
+                        },
+                        {
+                            name: "category_id",
+                            type: "int",
+                            isNullable: true,
+                        },
+                    ],
+                })
+            );
+        }
+
+        const hasFK = await queryRunner.hasColumn("products", "category_id");
+
+        if (hasFK) {
+            await queryRunner.createForeignKey(
+                "products",
+                new TableForeignKey({
+                    columnNames: ["category_id"],
+                    referencedTableName: "categories",
+                    referencedColumnNames: ["id"],
+                    onDelete: "SET NULL",
+                })
+            );
+        }
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "products" DROP CONSTRAINT "FK_9a5f6868c96e0069e699f33e124"`);
-        await queryRunner.query(`DROP TABLE "products"`);
-        await queryRunner.query(`DROP TABLE "categories"`);
-    }
 
+        const table = await queryRunner.getTable("products");
+        const fk = table?.foreignKeys.find(fk => fk.columnNames.includes("category_id"));
+        if (fk) {
+            await queryRunner.dropForeignKey("products", fk);
+        }
+
+        await queryRunner.dropTable("products", true);
+        await queryRunner.dropTable("categories", true);
+    }
 }
