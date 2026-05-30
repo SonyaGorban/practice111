@@ -1035,3 +1035,153 @@ RawContentLength  : 701
 ### Redis кеш
 PS C:\Users\user\Desktop\practice11\practice111> docker compose exec redis redis-cli KEYS "products:*"
 (empty array)
+
+# MiniShop API — Фінальний проєкт
+
+## Student
+- Name: Горбань Софія Сегріївна  
+- Group: 232.1  
+
+
+
+#  Опис проєкту
+
+MiniShop API — це RESTful backend для інтернет-магазину, реалізований на NestJS з використанням PostgreSQL, Redis та JWT авторизації.
+
+Проєкт включає повний цикл роботи магазину:
+- користувачі
+- продукти
+- категорії
+- замовлення (Orders Module)
+
+
+
+#  Технології
+
+- NestJS + TypeScript
+- PostgreSQL + TypeORM (міграції)
+- Redis (кешування)
+- JWT Authentication
+- RBAC (Role-Based Access Control)
+- class-validator / class-transformer
+- Swagger (OpenAPI)
+- Docker / Docker Compose
+
+
+
+#  Запуск проєкту
+
+cp .env.example .env
+docker compose up --build
+docker compose run --rm app npm run seed
+Swagger UI
+http://localhost:3000/api/docs
+
+## Структура проєкту
+src/
+├── auth/
+├── users/
+├── categories/
+├── products/
+├── orders/
+│   ├── dto/
+│   │   ├── create-order.dto.ts
+│   │   ├── create-order-item.dto.ts
+│   │   ├── update-order-status.dto.ts
+│   │   └── order-query.dto.ts
+│   ├── entities/
+│   │   ├── order.entity.ts
+│   │   └── order-item.entity.ts
+│   ├── orders.controller.ts
+│   ├── orders.service.ts
+│   └── orders.module.ts
+├── common/
+│   ├── enums/
+│   │   ├── role.enum.ts
+│   │   └── order-status.enum.ts
+│   ├── decorators/
+│   ├── guards/
+│   ├── interceptors/
+│   └── filters/
+├── migrations/
+├── data-source.ts
+├── app.module.ts
+└── main.ts
+## All API Endpoints
+
+| Module | Method | URL | Auth | Role | Description |
+|--------|--------|-----|------|------|-------------|
+| Auth | POST | /auth/register | - | - | Register user |
+| Auth | POST | /auth/login | - | - | Login |
+| Products | GET | /api/products | - | - | Get products |
+| Products | POST | /api/products | JWT | admin | Create product |
+| Orders | POST | /api/orders | JWT | user/admin | Create order |
+| Orders | GET | /api/orders | JWT | user/admin | Get orders (ownership) |
+| Orders | GET | /api/orders/:id | JWT | user/admin | Get order by id |
+| Orders | PATCH | /api/orders/:id/status | JWT | admin | Update status |
+| Orders | DELETE | /api/orders/:id | JWT | admin | Delete order |
+
+## Перевірка API
+
+PS C:\Users\user\Desktop\practice11\practice111> curl http://localhost:3000/api/products?pageSize=3
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"data":{"items":[],"meta":{"page":1,"pageSize":2,"total":0,"totalP
+                    ages":0}},"statusCode":200,"timestamp":"2026-05-30T12:31:44.788Z"}
+RawContent        : HTTP/1.1 200 OK
+                    Connection: keep-alive
+                    Keep-Alive: timeout=5
+                    Content-Length: 133
+                    Content-Type: application/json; charset=utf-8
+                    Date: Thu, 30 May 2026 12:31:44 GMT
+                    ETag: W/"85-7b4y6zKdkHoEqxLQgD/...
+Forms             : {}
+Headers           : {[Connection, keep-alive], [Keep-Alive, timeout=5], [Content-Length
+                    , 133], [Content-Type, application/json; charset=utf-8]...}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        : System.__ComObject
+RawContentLength  : 133#
+
+
+## REGISTER
+
+curl -X 'POST' \
+  'http://localhost:3000/auth/register' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "email": "user@test.com",
+  "password": "password1234"
+}'
+
+{
+  "data": {
+    "id": 3,
+    "email": "user@test.com",
+    "name": null,
+    "role": "user",
+    "createdAt": "2026-05-30T12:36:49.843Z"
+  },
+  "statusCode": 201,
+  "timestamp": "2026-05-30T12:36:49.849Z"
+}
+
+## LOGIN
+curl -X 'POST' \
+  'http://localhost:3000/auth/login' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "email": "user@test.com",
+  "password": "password1234"
+}'
+{
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImVtYWlsIjoidXNlckB0ZXN0LmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzgwMTQ0ODA5LCJleHAiOjE3ODAxNDg0MDl9.LuWwV0zgzVLYHzznVa_S8cO3edv8JLUVqL_0N2RsFxw"
+  },
+  "statusCode": 200,
+  "timestamp": "2026-05-30T12:40:09.360Z"
+}
